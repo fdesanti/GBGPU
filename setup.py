@@ -8,6 +8,10 @@ from Cython.Distutils import build_ext
 import numpy
 
 
+#run prebuild script 
+os.system("python scripts/prebuild.py")
+
+
 def find_in_path(name, path):
     """Find a file in a search path"""
 
