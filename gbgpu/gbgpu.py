@@ -111,7 +111,7 @@ class GBGPU(object):
     @orbits.setter
     def orbits(self, orbits: Orbits) -> None:
         if orbits is None:
-            self._orbits = EqualArmlengthOrbits()
+            self._orbits = EqualArmlengthOrbits(use_gpu=self.use_gpu)
         elif not isinstance(orbits, Orbits):
             raise ValueError(
                 "Input orbits must be of type Orbits (from LISA Analysis Tools)"
