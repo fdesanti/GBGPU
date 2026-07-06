@@ -1,6 +1,6 @@
 
 [build-system]
-requires = ["setuptools", "wheel", "Cython",  "numpy", "lisaanalysistools"]
+requires = ["setuptools", "wheel", "Cython",  "numpy", "lisaanalysistools<1.2.8"]
 build-backend = 'setuptools.build_meta'
 
 [tool.poetry]
