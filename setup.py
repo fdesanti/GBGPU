@@ -1,6 +1,7 @@
 # from future.utils import iteritems
 import os
 import shutil
+import subprocess
 from os.path import join as pjoin
 from setuptools import setup
 from distutils.extension import Extension
@@ -125,8 +126,62 @@ except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
 
-lib_gsl_dir = "/opt/local/lib"
-include_gsl_dir = "/opt/local/include"
+def locate_gsl():
+    """Locate the GSL installation (headers + shared libs).
+
+    Works whether GSL comes from a conda env, a system package manager,
+    or a custom install, by trying (in order):
+
+      1. GSL_HOME / GSL_DIR environment variable
+      2. `gsl-config` found on PATH (this is what conda-forge's gsl
+         package and most system packages ship, and it always points
+         at the prefix that matches the loadable shared library)
+      3. CONDA_PREFIX environment variable
+      4. A handful of common install prefixes
+    """
+    candidates = []
+
+    for env_var in ("GSL_HOME", "GSL_DIR"):
+        if env_var in os.environ:
+            candidates.append(os.environ[env_var])
+
+    gsl_config = shutil.which("gsl-config")
+    if gsl_config is not None:
+        try:
+            prefix = subprocess.check_output(
+                [gsl_config, "--prefix"], text=True
+            ).strip()
+            candidates.append(prefix)
+        except (subprocess.CalledProcessError, OSError):
+            pass
+
+    if "CONDA_PREFIX" in os.environ:
+        candidates.append(os.environ["CONDA_PREFIX"])
+
+    candidates += ["/usr", "/usr/local", "/opt/local"]
+
+    for prefix in candidates:
+        include_dir = pjoin(prefix, "include")
+        if os.path.exists(pjoin(include_dir, "gsl", "gsl_version.h")):
+            lib_dir = next(
+                (
+                    d
+                    for d in (pjoin(prefix, "lib64"), pjoin(prefix, "lib"))
+                    if os.path.isdir(d)
+                ),
+                pjoin(prefix, "lib"),
+            )
+            return lib_dir, include_dir
+
+    raise EnvironmentError(
+        "Could not locate a GSL installation. Install GSL (e.g. `conda "
+        "install gsl` or your system's gsl-devel/libgsl-dev package) or "
+        "set the GSL_HOME environment variable to its install prefix "
+        "(the directory containing include/gsl and lib)."
+    )
+
+
+lib_gsl_dir, include_gsl_dir = locate_gsl()
 
 if run_cuda_install:
     ext_gpu_dict = dict(
