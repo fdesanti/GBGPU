@@ -252,6 +252,7 @@ setup(
     ],
     py_modules=["gbgpu.gbgpu", "gbgpu.thirdbody"],
     ext_modules=extensions,
+    install_requires=["numpy", "lisaanalysistools<1.2.8", "gpubackendtools"],
     # Inject our custom trigger
     cmdclass={"build_ext": custom_build_ext},
     # Since the package has c code, the egg cannot be zipped
